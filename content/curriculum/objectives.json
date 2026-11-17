@@ -1,0 +1,345 @@
+{
+  "schemaVersion": 1,
+  "exam": {
+    "code": "EX200",
+    "title": "Red Hat Certified System Administrator (RHCSA) exam",
+    "basedOn": "Red Hat Enterprise Linux 10",
+    "format": "hands-on, practical exam",
+    "internetAccess": false,
+    "personalDocumentationAllowed": false,
+    "productDocumentationAvailable": "for-most-exams-per-source-page",
+    "mustPersistAfterReboot": true,
+    "durationOfficial": null,
+    "passingScoreOfficial": null,
+    "weightsOfficial": null
+  },
+  "source": {
+    "url": "https://www.redhat.com/en/services/training/ex200-red-hat-certified-system-administrator-rhcsa-exam",
+    "section": "Study points for the exam",
+    "retrievedOn": "2026-11-15",
+    "htmlSha256": "f0a76d4bcc0fd3eeb340be537530af147e09e85392b09ee79d9cbd58c7a8b10e",
+    "listSha256": "cbc033aedc90326eac058c5dd0d1b26fc5a9f7ef1bbaf7919425894b5418b770",
+    "listSha256Definition": "SHA-256 al textului UTF-8 format din titlul fiecărei categorii urmat de obiectivele ei, o linie pe element, separate prin \\n, fără \\n final.",
+    "note": "Textul obiectivelor este copiat verbatim. ID-urile C<categorie>-<n> sunt interne proiectului (paginea Red Hat nu numerotează obiectivele); categoriile sunt numerotate în ordinea paginii oficiale."
+  },
+  "categories": [
+    {
+      "id": "C1",
+      "order": 1,
+      "title": "Understand and use essential tools",
+      "objectives": [
+        {
+          "id": "C1-1",
+          "text": "Access a shell prompt and issue commands with correct syntax"
+        },
+        {
+          "id": "C1-2",
+          "text": "Use input-output redirection (>, >>, |, 2>, etc.)"
+        },
+        {
+          "id": "C1-3",
+          "text": "Use grep and regular expressions to analyze text"
+        },
+        {
+          "id": "C1-4",
+          "text": "Access remote systems using SSH"
+        },
+        {
+          "id": "C1-5",
+          "text": "Log in and switch users in multi-user targets"
+        },
+        {
+          "id": "C1-6",
+          "text": "Archive, compress, unpack, and uncompress files using tar, gzip, and bzip2"
+        },
+        {
+          "id": "C1-7",
+          "text": "Create and edit text files"
+        },
+        {
+          "id": "C1-8",
+          "text": "Create, delete, copy, and move files and directories"
+        },
+        {
+          "id": "C1-9",
+          "text": "Create hard and soft links"
+        },
+        {
+          "id": "C1-10",
+          "text": "List, set, and change standard ugo/rwx permissions"
+        },
+        {
+          "id": "C1-11",
+          "text": "Locate, read, and use system documentation including man, info, and files in /usr/share/doc"
+        }
+      ]
+    },
+    {
+      "id": "C2",
+      "order": 2,
+      "title": "Manage software",
+      "objectives": [
+        {
+          "id": "C2-1",
+          "text": "Configure access to RPM repositories"
+        },
+        {
+          "id": "C2-2",
+          "text": "Install and remove RPM software packages"
+        },
+        {
+          "id": "C2-3",
+          "text": "Configure access to Flatpak repositories"
+        },
+        {
+          "id": "C2-4",
+          "text": "Install and remove Flatpak software packages"
+        }
+      ]
+    },
+    {
+      "id": "C3",
+      "order": 3,
+      "title": "Create simple shell scripts",
+      "objectives": [
+        {
+          "id": "C3-1",
+          "text": "Conditionally execute code (use of: if, test, [], etc.)"
+        },
+        {
+          "id": "C3-2",
+          "text": "Use Looping constructs (for, etc.) to process file, command line input"
+        },
+        {
+          "id": "C3-3",
+          "text": "Process script inputs ($1, $2, etc.)"
+        },
+        {
+          "id": "C3-4",
+          "text": "Processing output of shell commands within a script"
+        }
+      ]
+    },
+    {
+      "id": "C4",
+      "order": 4,
+      "title": "Operate running systems",
+      "objectives": [
+        {
+          "id": "C4-1",
+          "text": "Boot, reboot, and shut down a system normally"
+        },
+        {
+          "id": "C4-2",
+          "text": "Boot systems into different targets manually"
+        },
+        {
+          "id": "C4-3",
+          "text": "Interrupt the boot process in order to gain access to a system"
+        },
+        {
+          "id": "C4-4",
+          "text": "Identify CPU/memory intensive processes and kill processes"
+        },
+        {
+          "id": "C4-5",
+          "text": "Adjust process scheduling"
+        },
+        {
+          "id": "C4-6",
+          "text": "Manage tuning profiles"
+        },
+        {
+          "id": "C4-7",
+          "text": "Locate and interpret system log files and journals"
+        },
+        {
+          "id": "C4-8",
+          "text": "Preserve system journals"
+        },
+        {
+          "id": "C4-9",
+          "text": "Start, stop, and check the status of network services"
+        },
+        {
+          "id": "C4-10",
+          "text": "Securely transfer files between systems"
+        }
+      ]
+    },
+    {
+      "id": "C5",
+      "order": 5,
+      "title": "Configure local storage",
+      "objectives": [
+        {
+          "id": "C5-1",
+          "text": "List, create, and delete partitions on GPT disks"
+        },
+        {
+          "id": "C5-2",
+          "text": "Create and remove physical volumes"
+        },
+        {
+          "id": "C5-3",
+          "text": "Assign physical volumes to volume groups"
+        },
+        {
+          "id": "C5-4",
+          "text": "Create and delete logical volumes"
+        },
+        {
+          "id": "C5-5",
+          "text": "Configure systems to mount file systems at boot by universally unique ID (UUID) or label"
+        },
+        {
+          "id": "C5-6",
+          "text": "Add new partitions and logical volumes, and swap to a system non-destructively"
+        }
+      ]
+    },
+    {
+      "id": "C6",
+      "order": 6,
+      "title": "Create and configure file systems",
+      "objectives": [
+        {
+          "id": "C6-1",
+          "text": "Create, mount, unmount, and use VFAT, ext4, and XFS file systems"
+        },
+        {
+          "id": "C6-2",
+          "text": "Mount and unmount network file systems using NFS"
+        },
+        {
+          "id": "C6-3",
+          "text": "Configure autofs"
+        },
+        {
+          "id": "C6-4",
+          "text": "Extend existing logical volumes"
+        },
+        {
+          "id": "C6-5",
+          "text": "Diagnose and correct file permission problems"
+        }
+      ]
+    },
+    {
+      "id": "C7",
+      "order": 7,
+      "title": "Deploy, configure, and maintain systems",
+      "objectives": [
+        {
+          "id": "C7-1",
+          "text": "Schedule tasks using at, cron and systemd timer units"
+        },
+        {
+          "id": "C7-2",
+          "text": "Start and stop services and configure services to start automatically at boot"
+        },
+        {
+          "id": "C7-3",
+          "text": "Configure systems to boot into a specific target automatically"
+        },
+        {
+          "id": "C7-4",
+          "text": "Configure time service clients"
+        },
+        {
+          "id": "C7-5",
+          "text": "Install and update software packages from Red Hat Content Delivery Network, a remote repository, or from the local file system"
+        },
+        {
+          "id": "C7-6",
+          "text": "Modify the system bootloader"
+        }
+      ]
+    },
+    {
+      "id": "C8",
+      "order": 8,
+      "title": "Manage basic networking",
+      "objectives": [
+        {
+          "id": "C8-1",
+          "text": "Configure IPv4 and IPv6 addresses"
+        },
+        {
+          "id": "C8-2",
+          "text": "Configure hostname resolution"
+        },
+        {
+          "id": "C8-3",
+          "text": "Configure network services to start automatically at boot"
+        },
+        {
+          "id": "C8-4",
+          "text": "Restrict network access using firewalld and firewall-cmd"
+        }
+      ]
+    },
+    {
+      "id": "C9",
+      "order": 9,
+      "title": "Manage users and groups",
+      "objectives": [
+        {
+          "id": "C9-1",
+          "text": "Create, delete, and modify local user accounts"
+        },
+        {
+          "id": "C9-2",
+          "text": "Change passwords and adjust password aging for local user accounts"
+        },
+        {
+          "id": "C9-3",
+          "text": "Create, delete, and modify local groups and group memberships"
+        },
+        {
+          "id": "C9-4",
+          "text": "Configure privileged access"
+        }
+      ]
+    },
+    {
+      "id": "C10",
+      "order": 10,
+      "title": "Manage security",
+      "objectives": [
+        {
+          "id": "C10-1",
+          "text": "Configure firewall settings using firewall-cmd/firewalld"
+        },
+        {
+          "id": "C10-2",
+          "text": "Manage default file permissions"
+        },
+        {
+          "id": "C10-3",
+          "text": "Configure key-based authentication for SSH"
+        },
+        {
+          "id": "C10-4",
+          "text": "Set enforcing and permissive modes for SELinux"
+        },
+        {
+          "id": "C10-5",
+          "text": "List and identify SELinux file and process context"
+        },
+        {
+          "id": "C10-6",
+          "text": "Restore default file contexts"
+        },
+        {
+          "id": "C10-7",
+          "text": "Manage SELinux port labels"
+        },
+        {
+          "id": "C10-8",
+          "text": "Use Boolean settings to modify system SELinux settings"
+        }
+      ]
+    }
+  ]
+}

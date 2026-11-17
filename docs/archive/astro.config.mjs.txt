@@ -1,0 +1,10 @@
+// Configurare Astro 7: site static, fără backend, fără React (subetapa 1).
+import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+
+export default defineConfig({
+  integrations: [mdx()],
+  trailingSlash: 'always',
+  build: { format: 'directory' },
+  devToolbar: { enabled: false },
+});

@@ -1,0 +1,137 @@
+import type { Lab } from '../../lab/types';
+
+export const LAB_L6_2: Lab = {
+  id: 'lab-l6-2-extinde-lv',
+  lessonId: 'L6.2',
+  title: 'Extinde un LV și sistemul lui de fișiere (XFS și ext4), fără demontare',
+  modes: ['guided', 'independent'],
+  objectives: ['C6-4'],
+  difficulty: 2,
+  estimatedMinutes: 50,
+  scenario: [
+    'Grupul `datavg` conține volumul `data` (≈512 MiB, XFS, montat pe `/data`, cu câteva fișiere de test) și volumul `ext` (≈512 MiB, ext4, montat pe `/ext`). Spațiul liber din `datavg` este mic (cel mult ≈200 MiB).',
+    'Sarcina 1: extinde `data` cu 300 MiB și asigură-te că sistemul de fișiere folosește tot spațiul, fără demontare. Dacă `datavg` nu are loc, adaugă un PV nou (partiția `/dev/vdc1`, goală).',
+    'Sarcina 2: extinde `ext` până la dimensiunea finală de 1 GiB, în doi pași manuali (nu cu `-r`), apoi folosește tot spațiul liber rămas în `datavg` pentru `data`, cu un singur `lvextend -r`.',
+    'Fișierele de test trebuie să rămână intacte.',
+  ],
+  initialConditions: [
+    'Sistem RHEL 10 (sau compatibil) de test, cu `sudo`.',
+    'VG `datavg` cu LV-urile `data` (XFS, `/data`) și `ext` (ext4, `/ext`), ambele montate; fiecare conține fișiere de test (de exemplu 5 fișiere create cu `dd` sau `echo`).',
+    'O partiție goală `/dev/vdc1` (≥ 1 GiB) disponibilă pentru `pvcreate`.',
+    'Parcurse L5.2–L5.4 și L6.1.',
+  ],
+  finalState: [
+    '`data` ≈ (512 + 300) MiB sau mai mare, cu `df` arătând aceeași dimensiune (minus structurile interne).',
+    '`ext` = 1 GiB, cu `df` consecvent.',
+    'Fișierele de test sunt intacte (sume de control identice). Nimic nu a fost demontat.',
+  ],
+  criteria: [
+    { id: 'ac1', text: 'VG-ul are destul spațiu liber pentru extinderi (ai adăugat PV-ul dacă a fost nevoie).', manualCheck: 'sudo vgs datavg' },
+    { id: 'ac2', text: 'LV-ul data are acum ≥ 812 MiB.', manualCheck: 'sudo lvs datavg' },
+    { id: 'ac3', text: 'Sistemul de fișiere de pe /data a fost extins (df arată ≈ dimensiunea LV).', manualCheck: 'df -h /data' },
+    { id: 'ac4', text: 'LV-ul ext are 1 GiB și sistemul lui ext4 a fost extins în doi pași.', manualCheck: 'sudo lvs datavg; df -h /ext' },
+    { id: 'ac5', text: 'LV-ul data a primit tot spațiul liber rămas (VFree ≈ 0).', manualCheck: 'sudo vgs datavg' },
+    { id: 'ac6', text: 'Fișierele de test sunt intacte, iar /data și /ext au rămas montate.', manualCheck: 'sha256sum -c /root/test.sha256; findmnt /data; findmnt /ext' },
+  ],
+  steps: [
+    {
+      title: 'Evaluează situația și fă o sumă de control a datelor',
+      purpose: 'Vrei să știi de la ce pornești și să poți arăta că datele nu s-au schimbat.',
+      hint: 'Citește VFree din vgs și tipurile din df -T.',
+      commands: 'sudo vgs datavg\nsudo lvs datavg\ndf -hT /data /ext\nsudo sh -c \'sha256sum /data/* /ext/* > /root/test.sha256\'\ncat /root/test.sha256',
+      explain: [
+        ['vgs / lvs', 'VFree = spațiul din care poți extinde; LSize = dimensiunile curente.'],
+        ['df -hT', 'tipul (xfs/ext4) decide instrumentul pentru pasul manual.'],
+        ['sha256sum', 'calculează o sumă de control pentru fiecare fișier; fișierul /root/test.sha256 te lasă să compari după extindere.'],
+        ['sudo sh -c \'…\'', 'redirecționarea > este făcută de shell-ul pornit cu sudo, ca să poți scrie în /root.'],
+      ],
+      reflect: 'De ce trebuie să știi tipul sistemului de fișiere înainte de extindere?',
+    },
+    {
+      title: 'Adaugă un PV dacă VG-ul nu are loc',
+      purpose: 'lvextend nu poate crea spațiu; îl ia din VFree.',
+      hint: 'pvcreate, apoi vgextend. Sari peste dacă VFree este deja suficient.',
+      commands: 'sudo pvcreate /dev/vdc1\nsudo vgextend datavg /dev/vdc1\nsudo vgs datavg',
+      explain: [
+        ['pvcreate /dev/vdc1', 'pregătește partiția pentru LVM.'],
+        ['vgextend datavg /dev/vdc1', 'adaugă PV-ul în grup.'],
+        ['vgs', 'VFree trebuie să crească cu aproape dimensiunea partiției.'],
+      ],
+    },
+    {
+      title: 'Extinde data cu 300 MiB, cu -r',
+      purpose: 'O singură comandă extinde și LV-ul, și sistemul de fișiere XFS, online.',
+      hint: '+ înseamnă „adaugă”; -r redimensionează și sistemul de fișiere.',
+      commands: 'sudo lvextend -L +300M -r /dev/datavg/data\nsudo lvs datavg\ndf -h /data',
+      explain: [
+        ['lvextend -L +300M', 'adaugă 300 MiB la dimensiunea curentă (rezultat rotunjit la extent).'],
+        ['-r', 'după LV, apelează xfs_growfs prin fsadm; sistemul rămâne montat.'],
+        ['df -h /data', 'dimensiunea nouă a sistemului de fișiere.'],
+      ],
+      output: { label: 'illustrative', code: '  Size of logical volume datavg/data changed from 512.00 MiB (128 extents) to 812.00 MiB (203 extents).\n  Logical volume datavg/data successfully resized.\n...\ndata blocks changed from 131072 to 207872', explain: 'LVM raportează noua dimensiune; urmează liniile de la xfs_growfs. Formularea exactă variază.' },
+    },
+    {
+      title: 'Extinde ext la 1 GiB în doi pași manuali',
+      purpose: 'Înțelegi că LV-ul și sistemul de fișiere sunt două lucruri separate.',
+      hint: '-L fără + = dimensiune FINALĂ. ext4: resize2fs cu dispozitivul.',
+      commands: 'sudo lvextend -L 1G /dev/datavg/ext\ndf -h /ext\nsudo resize2fs /dev/datavg/ext\ndf -h /ext',
+      explain: [
+        ['lvextend -L 1G', 'dimensiunea FINALĂ este 1 GiB (nu „+1G”).'],
+        ['df -h /ext', 'încă arată dimensiunea veche: sistemul de fișiere nu s-a schimbat.'],
+        ['resize2fs /dev/datavg/ext', 'extinde ext4 montat, până la dimensiunea dispozitivului.'],
+      ],
+      output: { label: 'illustrative', code: 'resize2fs …\nFilesystem at /dev/datavg/ext is mounted on /ext; on-line resizing required\nold_desc_blocks = 1, new_desc_blocks = 1\nThe filesystem on /dev/datavg/ext is now 262144 (4k) blocks long.', explain: 'Mesajul arată redimensionare online; prima linie (versiunea) și numerele de blocuri diferă pe sistemul tău.' },
+    },
+    {
+      title: 'Dă lui data tot spațiul liber rămas',
+      purpose: 'Folosești procente: -l +100%FREE.',
+      hint: '-l (L mic) acceptă procente; +100%FREE = tot ce e liber.',
+      commands: 'sudo vgs datavg\nsudo lvextend -l +100%FREE -r /dev/datavg/data\nsudo vgs datavg\ndf -h /data',
+      explain: [
+        ['vgs', 'înainte: VFree > 0; după: VFree ≈ 0.'],
+        ['-l +100%FREE', 'adaugă toate extents-urile libere ale grupului.'],
+        ['-r', 'extinde și sistemul de fișiere.'],
+      ],
+    },
+    {
+      title: 'Verifică datele și montările',
+      purpose: 'Datele trebuie să fie intacte, iar sistemele de fișiere montate.',
+      hint: 'sha256sum -c compară cu valorile salvate.',
+      commands: 'sudo sha256sum -c /root/test.sha256\nfindmnt /data\nfindmnt /ext\nsudo lvs datavg\ndf -h /data /ext',
+      explain: [
+        ['sha256sum -c', '-c = check: recalculează și compară cu fișierul salvat; „OK” pentru fiecare fișier.'],
+        ['findmnt', 'confirmă că rămân montate.'],
+      ],
+    },
+  ],
+  verification: [
+    { cmd: 'sudo lvs datavg', expected: 'data ≥ 812 MiB (în final mai mare), ext = 1 GiB' },
+    { cmd: 'df -h /data /ext', expected: 'dimensiuni apropiate de LSize (puțin sub)' },
+    { cmd: 'sudo sha256sum -c /root/test.sha256', expected: 'toate: OK' },
+    { cmd: 'sudo vgs datavg', expected: 'VFree ≈ 0' },
+  ],
+  persistence: [
+    'Extinderea persistă (metadatele LVM și superblock-ul sunt pe disc).',
+    'Nu este nevoie de modificări în /etc/fstab (UUID-urile nu se schimbă).',
+    'Confirmare manuală: sudo reboot; apoi df -h /data /ext și lvs.',
+  ],
+  mistakes: [
+    'Extinderea LV-ului fără sistemul de fișiere (df arată dimensiunea veche).',
+    'Confuzia dintre -L +300M (adaugă) și -L 800M (dimensiune finală).',
+    'resize2fs pe XFS sau xfs_growfs cu dispozitivul unui sistem nemontat.',
+    'Încercarea de micșorare a XFS sau a LV-ului înaintea sistemului de fișiere.',
+    'Uitarea vgextend când VG-ul nu are loc.',
+  ],
+  troubleshooting: [
+    { symptom: '`Insufficient free space`', cause: 'cerere mai mare decât VFree', fix: '`vgs`; `pvcreate` + `vgextend`, sau cere mai puțin.' },
+    { symptom: 'lvs arată 812 MiB, df arată 495 MiB', cause: 'pasul 2 (sistemul de fișiere) lipsește', fix: '`xfs_growfs /data` sau `resize2fs /dev/datavg/ext`.' },
+    { symptom: '`Bad magic number in super-block` la resize2fs', cause: 'sistemul este XFS, nu ext4', fix: '`xfs_growfs` cu punctul de montare.' },
+    { symptom: '`New size given … not larger than existing size`', cause: '-L fără + cu o valoare mică', fix: 'folosește `+` sau o valoare mai mare.' },
+  ],
+  alternatives: [
+    '`lvextend -L +300M /dev/datavg/data && xfs_growfs /data` în loc de `-r`.',
+    '`lvresize -L +300M -r datavg/data` (lvresize poate și extinde, și micșora).',
+    '`lvextend -l +76 -r datavg/data` (în extents: 76 × 4 MiB = 304 MiB).',
+    'Pentru ext4: `resize2fs -p` afișează progres (la redimensionare offline).',
+  ],
+};

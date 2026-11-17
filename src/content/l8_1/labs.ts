@@ -1,0 +1,115 @@
+import type { Lab } from '../../lab/types';
+
+export const LAB_L8_1: Lab = {
+  id: 'lab-l8-1-ip-concepte',
+  lessonId: 'L8.1',
+  title: 'Citește adresele și rutele; calculează subrețele (doar citire)',
+  modes: ['guided', 'independent'],
+  objectives: [],
+  difficulty: 1,
+  estimatedMinutes: 35,
+  scenario: [
+    'Laborator de suport, fără obiectiv oficial: pe o mașină RHEL de test (sau orice Linux), ca utilizator obișnuit, doar CITEȘTI starea rețelei. Nu modifici nimic. Platforma nu rulează comenzile; notezi tu rezultatele.',
+    'Sarcina 1: identifică interfețele, starea lor și adresele IPv4/IPv6 (cu prefix) ale interfeței principale. Spune care adresă este link-local și care este loopback.',
+    'Sarcina 2: identifică gateway-ul implicit IPv4 (și IPv6, dacă există) și verifică că este în aceeași subrețea cu adresa ta.',
+    'Sarcina 3: pentru adresa ta IPv4 (sau, dacă nu o ai, pentru 192.0.2.10/24), calculează pe hârtie: adresa rețelei, broadcast-ul, primul și ultimul host utilizabil, numărul de host-uri.',
+    'Sarcina 4: rezolvă pe hârtie: pentru 198.51.100.77/25 și 203.0.113.130/26 găsește rețeaua, broadcast-ul și dacă gateway-ul .1 este valid; scrie în formă scurtă adresa IPv6 2001:0db8:0000:0000:0000:0000:0000:0010.',
+    'Sarcina 5: folosește ip route get pentru o adresă din subrețeaua ta și pentru una externă (de exemplu 198.51.100.7) și explică diferența dintre rezultate.',
+  ],
+  initialConditions: [
+    'Sistem Linux (RHEL de test) cu cel puțin o interfață activă.',
+    'Nu se modifică nicio setare de rețea în acest laborator.',
+  ],
+  finalState: [
+    'Ai notat adresele, prefixele, gateway-ul și interfețele sistemului tău.',
+    'Ai calculat corect rețea, broadcast și intervalul de host-uri pentru exemplele date.',
+    'Ai scris corect forma scurtă a adresei IPv6 date.',
+  ],
+  criteria: [
+    { id: 'ac1', text: 'Ai notat numele interfeței principale, starea ei și cel puțin o adresă IPv4 cu prefix.', manualCheck: 'ip -br addr; ip link show' },
+    { id: 'ac2', text: 'Ai identificat adresa link-local IPv6 (fe80::) și adresele loopback (127.0.0.1, ::1).', manualCheck: 'ip -6 addr show; ip addr show lo' },
+    { id: 'ac3', text: 'Ai identificat gateway-ul implicit și ai argumentat că este în subrețeaua adresei tale.', manualCheck: 'ip route; ip -6 route' },
+    { id: 'ac4', text: 'Pentru 192.0.2.10/24: rețea 192.0.2.0, broadcast 192.0.2.255, host-uri .1–.254 (254 de host-uri).', manualCheck: 'calcul pe hârtie; compară cu tabelul din lecție' },
+    { id: 'ac5', text: 'Pentru 198.51.100.77/25: rețea 198.51.100.0, broadcast 198.51.100.127; pentru 203.0.113.130/26: rețea 203.0.113.128, broadcast 203.0.113.191.', manualCheck: 'calcul pe hârtie (dimensiunea blocului = 256 − octetul măștii)' },
+    { id: 'ac6', text: 'Forma scurtă a adresei IPv6 este 2001:db8::10.', manualCheck: 'compară cu regulile de scurtare (zerourile din față, un singur ::)' },
+    { id: 'ac7', text: 'Ai explicat diferența dintre ip route get pentru o destinație locală și una externă (prezența lui via).', manualCheck: 'ip route get 192.0.2.50; ip route get 198.51.100.7' },
+  ],
+  steps: [
+    {
+      title: 'Interfețe și adrese',
+      purpose: 'Vezi ce interfețe are sistemul și ce adrese poartă.',
+      hint: 'ip -br addr este cea mai compactă formă.',
+      commands: 'ip link show\nip -br addr\nip addr show\nip -4 -br addr\nip -6 -br addr',
+      explain: [
+        ['ip link show', 'nivelul 2: nume, stare, MAC, MTU.'],
+        ['ip -br addr', 'brief: o linie per interfață cu starea și adresele.'],
+        ['ip addr show', 'forma completă, cu brd, scope, valid_lft/preferred_lft.'],
+        ['-4 / -6', 'filtrează familia de adrese.'],
+      ],
+      output: { label: 'illustrative', code: 'lo      UNKNOWN  127.0.0.1/8 ::1/128\nenp1s0  UP       192.0.2.10/24 fe80::5054:ff:fe12:3456/64', explain: 'Exemplu: loopback (lo) și interfața principală cu o adresă IPv4 și una link-local IPv6. Numele și adresele tale vor diferi.' },
+      reflect: 'Care dintre adrese este rutabilă dincolo de segmentul local și care nu? De ce o interfață fără DHCP are totuși adresă fe80::?',
+    },
+    {
+      title: 'Gateway și rute',
+      purpose: 'Află unde merge traficul care nu este local.',
+      hint: 'Caută linia care începe cu default.',
+      commands: 'ip route\nip -4 route show default\nip -6 route\nip route get 192.0.2.50\nip route get 198.51.100.7',
+      explain: [
+        ['ip route', 'tabela de rutare IPv4.'],
+        ['show default', 'doar ruta implicită; „via X” = gateway-ul.'],
+        ['ip route get ADRESĂ', 'ruta pe care kernelul ar alege-o pentru acea destinație.'],
+      ],
+      output: { label: 'illustrative', code: 'default via 192.0.2.1 dev enp1s0 proto static metric 100\n192.0.2.0/24 dev enp1s0 proto kernel scope link src 192.0.2.10 metric 100', explain: 'Gateway-ul este 192.0.2.1, din aceeași subrețea /24 cu adresa 192.0.2.10: valid.' },
+    },
+    {
+      title: 'Calculează subrețelele',
+      purpose: 'Reflexul de a citi adresa și prefixul fără unelte.',
+      hint: 'Dimensiunea blocului = 256 minus octetul relevant din mască.',
+      commands: '# pe hârtie:\n# 192.0.2.10/24     -> rețea? broadcast? host-uri?\n# 198.51.100.77/25  -> bloc de 128\n# 203.0.113.130/26  -> bloc de 64\n# 2001:0db8:0000:0000:0000:0000:0000:0010 -> formă scurtă?',
+      explain: [
+        ['/24', 'masca 255.255.255.0: ultimul octet este partea de host (256 de adrese).'],
+        ['/25', 'masca …128: blocuri de 128 (0–127, 128–255).'],
+        ['/26', 'masca …192: blocuri de 64 (0–63, 64–127, 128–191, 192–255).'],
+        ['IPv6', 'scoți zerourile din fața grupurilor și înlocuiești o singură succesiune de grupuri nule cu ::.'],
+      ],
+      output: { label: 'illustrative', code: '192.0.2.0/24     -> 192.0.2.0 .. 192.0.2.255   (host-uri .1-.254)\n198.51.100.0/25  -> 198.51.100.0 .. 198.51.100.127 (host-uri .1-.126)\n203.0.113.128/26 -> 203.0.113.128 .. 203.0.113.191 (host-uri .129-.190)\n2001:db8::10', explain: 'Rezultatele corecte ale exercițiilor. Dacă diferă de ale tale, reia metoda cu blocuri.' },
+    },
+    {
+      title: 'Testează conectivitatea locală',
+      purpose: 'Confirmă că stiva IP locală și gateway-ul răspund.',
+      hint: 'Mai întâi loopback, apoi gateway-ul.',
+      commands: 'ping -c 3 127.0.0.1\nping -c 3 ::1\nping -c 3 192.0.2.1',
+      explain: [
+        ['ping -c 3', 'trimite 3 pachete ICMP echo și se oprește.'],
+        ['127.0.0.1 / ::1', 'loopback: dacă eșuează, problema e în stiva locală.'],
+        ['192.0.2.1', 'înlocuiește cu gateway-ul tău real; răspunsul arată că ai conectivitate de nivel 2/3 până la el.'],
+      ],
+    },
+  ],
+  verification: [
+    { cmd: 'ip -br addr', expected: 'interfața principală UP cu o adresă IPv4/prefix; lo cu 127.0.0.1 și ::1' },
+    { cmd: 'ip route', expected: 'linie default via <gateway> din aceeași subrețea cu adresa ta' },
+    { cmd: 'ip route get 198.51.100.7', expected: 'rezultat cu „via <gateway>”' },
+  ],
+  persistence: [
+    'Laboratorul nu modifică nimic; nu există configurație de persistat.',
+    'Reține: ip addr add / ip route add nu persistă după reboot; configurația durabilă se face în NetworkManager (L8.2).',
+  ],
+  mistakes: [
+    'Confundarea prefixului cu masca (255.255.255.24).',
+    'Calculul greșit al blocului la prefixe care nu sunt la granița unui octet (/25, /26).',
+    'Gateway în afara subrețelei.',
+    'Folosirea lui :: de două ori într-o adresă IPv6.',
+    'Interpretarea lui fe80:: ca adresă rutată.',
+  ],
+  troubleshooting: [
+    { symptom: 'ip -br addr nu arată adrese IPv6 globale', cause: 'rețeaua nu anunță prefix IPv6 sau IPv6 e dezactivat în profil', fix: 'este normal în multe medii de test; doar link-local (fe80::) este garantat.' },
+    { symptom: 'ping către gateway eșuează', cause: 'adresa gateway-ului din exemplu nu este a ta, sau ICMP este blocat', fix: 'folosește gateway-ul real din ip route; ping eșuat nu dovedește neapărat o problemă.' },
+    { symptom: 'comanda ip nu este găsită', cause: 'pachetul iproute lipsește (rar)', fix: 'sudo dnf install iproute' },
+  ],
+  alternatives: [
+    'ip -j addr (JSON) pentru procesare, dacă ai jq.',
+    'nmcli device show și nmcli connection show pentru aceleași informații prin NetworkManager (L8.2).',
+    'ipcalc (dacă este instalat) pentru calculul subrețelelor; calculul manual rămâne obligatoriu de stăpânit.',
+  ],
+};

@@ -1,0 +1,6 @@
+# Normalizare linii: textul în repo e LF; scripturile shell trebuie să rămână LF pe Windows.
+* text=auto eol=lf
+*.sh text eol=lf
+*.png binary
+*.jpg binary
+*.woff2 binary

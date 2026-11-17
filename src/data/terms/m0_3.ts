@@ -1,0 +1,81 @@
+import type { GlossaryEntry } from '../../lib/types';
+
+export const TERMS: GlossaryEntry[] = [
+  {
+    id: 'terminal', abbr: 'terminal', ro: 'fereastra sau dispozitivul prin care tastezi și citești text',
+    what: 'Istoric, un terminal era un aparat fizic cu tastatură și ecran, conectat la un calculator central. Astăzi este un program (emulator de terminal) sau consola text a mașinii. El doar transportă textul; nu interpretează comenzi.',
+    how: 'Terminalul trimite ce tastezi către shell și afișează ce răspunde shell-ul. Pe un sistem Linux, fiecare terminal este reprezentat de un fișier special sub /dev (de exemplu /dev/pts/0 sau /dev/tty1); comanda tty îi arată numele.',
+    where: 'Terminal grafic din desktop, consola text (Ctrl+Alt+F2…), sesiune SSH, consola VM-ului.',
+    topics: ['M0.3'], aliases: ['terminal emulator', 'emulator de terminal', 'consolă', 'console', 'pty', 'pseudo-terminal'],
+  },
+  {
+    id: 'interactive-shell', abbr: 'shell interactiv', ro: 'shell care citește comenzi tastate de o persoană',
+    what: 'Un shell interactiv afișează prompt, folosește istoric, completare cu Tab și alias-uri. Un shell non-interactiv (de exemplu, care rulează un script) citește comenzile dintr-un fișier și nu are prompt.',
+    how: 'bash își dă seama singur: dacă intrarea standard este un terminal, devine interactiv. Variabila $- conține litera i într-un shell interactiv.',
+    where: 'Diferența contează când pui configurări în ~/.bashrc (aplicate la shell interactiv) sau când scrii scripturi (C3).',
+    topics: ['M0.3'], aliases: ['non-interactiv', 'non-interactive shell'],
+  },
+  {
+    id: 'shell-expansion', abbr: 'expandare', full: 'shell expansion', ro: 'înlocuirea unor construcții din linie cu textul pe care îl reprezintă, ÎNAINTE de a rula comanda',
+    what: 'Shell-ul, nu comanda, transformă $VAR în valoare, ~ în directorul home, * în lista fișierelor potrivite, {a,b} în a b și $(cmd) în ieșirea comenzii. Comanda primește rezultatul deja expandat.',
+    how: 'Ordinea (bash): expandarea acoladelor, tilde, parametri/variabile, substituția de comenzi și aritmetică, împărțirea în cuvinte, expandarea numelor de fișiere (glob), apoi eliminarea citărilor.',
+    where: 'echo * arată ce a expandat shell-ul; set -x (în scripturi) afișează linia după expandare.',
+    std: 'bash(1) EXPANSION', topics: ['M0.3'], aliases: ['expansion'],
+  },
+  {
+    id: 'word-splitting', abbr: 'word splitting', ro: 'împărțirea textului în cuvinte separate după spații',
+    what: 'După expandare, textul necitat este spart în cuvinte la spațiu, tab și linie nouă (valoarea variabilei IFS). De aceea un fișier cu spațiu în nume trebuie citat.',
+    how: 'touch fisier cu spatii primește trei argumente; touch "fisier cu spatii" primește unul. Același lucru se aplică valorilor variabilelor neîncadrate între ghilimele.',
+    where: 'Cauza clasică a greșelilor la rm și cp cu nume cu spații; motivul pentru care scrii "$VAR" în scripturi (C3).',
+    topics: ['M0.3'], aliases: ['IFS'],
+  },
+  {
+    id: 'tilde-expansion', abbr: '~ (tilde)', ro: 'prescurtare pentru directorul home',
+    what: '~ devine $HOME (/home/utilizator); ~alice devine directorul home al utilizatorului alice; ~root este /root.',
+    how: 'Se expandează doar la începutul unui cuvânt necitat: "~/fisier" cu ghilimele NU se expandează.',
+    where: 'cd ~, cp fisier ~/, ls ~alice (dacă ai drept).',
+    topics: ['M0.3', 'M0.4'],
+  },
+  {
+    id: 'environment-variable', abbr: 'variabilă de mediu', full: 'environment variable', ro: 'variabilă transmisă proceselor pornite de shell',
+    what: 'Perechi NUME=valoare pe care fiecare proces le moștenește de la părinte: HOME, USER, PATH, LANG, PWD, SHELL. O variabilă simplă de shell NU este moștenită până nu o exporți.',
+    how: 'export NUME=valoare o face variabilă de mediu. Comenzile env și printenv afișează mediul. La pornirea unui proces nou, nucleul îi copiază o listă de șiruri „NUME=valoare”.',
+    where: 'printenv HOME; echo $PATH; env | sort. Setări persistente: ~/.bashrc, ~/.bash_profile, /etc/profile.d/.',
+    std: 'environ(7)', topics: ['M0.3'], aliases: ['environment', 'mediu', 'export'],
+  },
+  {
+    id: 'source-cmd', abbr: 'source', full: 'source / . (builtin)', ro: 'execută comenzile dintr-un fișier în shell-ul curent, fără proces copil',
+    what: 'source ~/.bashrc (sau . ~/.bashrc) reîncarcă fișierul în sesiunea curentă, deci alias-urile și variabilele definite în el apar imediat.',
+    how: 'Spre deosebire de rularea unui script (bash script.sh), care creează un proces copil ce dispare cu tot cu variabilele lui, source rulează în același proces.',
+    where: 'După editarea ~/.bashrc, ~/.bash_profile, a unui fișier cu variabile (source /etc/os-release).',
+    std: 'bash(1) SHELL BUILTIN COMMANDS', topics: ['M0.3'], aliases: ['dot'],
+  },
+  {
+    id: 'control-operator', abbr: 'operatori de control', ro: ';  &&  ||  &  |  — leagă comenzi într-o singură linie',
+    what: '; rulează secvențial; && rulează a doua doar dacă prima a reușit (exit 0); || doar dacă a eșuat; & pornește în fundal; | trimite ieșirea unei comenzi ca intrare a alteia.',
+    how: 'Shell-ul le recunoaște ca separatori înainte de expandare. Se evaluează de la stânga la dreapta (&& și || au aceeași prioritate).',
+    where: 'mkdir dir && cd dir; grep x f || echo "nu există"; sleep 100 &.',
+    std: 'bash(1) Lists', topics: ['M0.3'], aliases: ['&&', '||'],
+  },
+  {
+    id: 'tab-completion', abbr: 'completare cu Tab', ro: 'bash completează numele de comenzi, fișiere, variabile sau opțiuni când apeși Tab',
+    what: 'Un Tab completează dacă există o singură potrivire; două Tab-uri listează variantele. Reduce erorile de scriere și accelerează lucrul la examen.',
+    how: 'Biblioteca readline caută printre comenzi (în PATH), fișiere sau, cu pachetul bash-completion, printre opțiunile și argumentele comenzii.',
+    where: 'Tastezi sys + Tab → systemctl; /etc/ho + Tab → /etc/hosts.',
+    topics: ['M0.3'], aliases: ['Tab', 'bash-completion'],
+  },
+  {
+    id: 'sigint-ctrl-c', abbr: 'Ctrl+C / SIGINT', ro: 'oprește comanda care rulează în prim-plan',
+    what: 'Ctrl+C trimite semnalul SIGINT (interrupt) procesului din prim-plan; majoritatea programelor se opresc. Ctrl+D transmite „sfârșit de intrare” (EOF); într-un prompt gol închide shell-ul. Ctrl+Z suspendă procesul (reia cu fg).',
+    how: 'Driverul de terminal transformă combinația de taste în semnal pentru grupul de procese din prim-plan.',
+    where: 'Comandă blocată, prompt blocat pe >, ping care rulează la nesfârșit.',
+    topics: ['M0.3'], aliases: ['Ctrl+C', 'Ctrl+D', 'EOF', 'SIGINT'],
+  },
+  {
+    id: 'reserved-word', abbr: 'cuvânt rezervat', ro: 'cuvânt cu sens special pentru shell (if, for, while, case, function…)',
+    what: 'Nu sunt programe, ci parte din limbajul shell-ului. type if răspunde „if is a shell keyword”.',
+    how: 'Se recunosc doar la începutul unei comenzi simple. Le vei folosi în scripturi (C3).',
+    where: 'type for; help for.',
+    topics: ['M0.3'], aliases: ['keyword', 'shell keyword'],
+  },
+];

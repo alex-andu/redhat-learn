@@ -1,0 +1,88 @@
+import type { GlossaryEntry } from '../../lib/types';
+
+export const TERMS: GlossaryEntry[] = [
+  {
+    id: 'directory-tree', abbr: 'arbore unic de directoare', ro: 'toate fișierele din toate discurile apar sub un singur director rădăcină, /',
+    what: 'Linux nu are litere de unitate (C:, D:). Discurile și partițiile se „montează” într-un director al arborelui existent. Calea /home/ana/poza.png nu spune pe ce disc se află fișierul.',
+    how: 'Nucleul păstrează o tabelă de montări: la parcurgerea unei căi, trecerea printr-un punct de montare duce în alt sistem de fișiere, fără ca tu să observi.',
+    where: 'findmnt, df -h, lsblk; capitolele C5 și C6.',
+    topics: ['M0.4'], aliases: ['single rooted tree', 'root directory', 'rădăcina /'],
+  },
+  {
+    id: 'fhs', abbr: 'FHS', full: 'Filesystem Hierarchy Standard', ro: 'standardul care spune ce se pune în fiecare director de top',
+    what: 'Specificație (versiunea 3.0) care descrie scopul directoarelor /etc, /var, /usr, /home, /tmp ș.a. Distribuțiile îl urmează cu mici diferențe; RHEL îl urmează în linii mari.',
+    how: 'Împarte conținutul după două criterii: static sau variabil (se schimbă în timpul funcționării?) și partajabil sau local (poate fi folosit de alte mașini?).',
+    where: 'man 7 hier descrie ierarhia așa cum o vede sistemul tău; la examen te ajută să știi unde cauți configurări, log-uri sau date.',
+    std: 'FHS 3.0, hier(7)', topics: ['M0.4'], aliases: ['hier', 'Filesystem Hierarchy Standard'],
+  },
+  {
+    id: 'etc-dir', abbr: '/etc', ro: 'configurări locale ale sistemului și ale serviciilor (text)',
+    what: 'Aici stau fișierele de configurare specifice mașinii: /etc/fstab, /etc/hosts, /etc/passwd, /etc/ssh/sshd_config, /etc/yum.repos.d/. Sunt aproape toate fișiere text.',
+    how: 'Un pachet livrează valori implicite în /usr/lib/... sau în /etc; administratorul suprascrie în /etc. Un fișier modificat de tine este păstrat la actualizare (apare ca .rpmsave/.rpmnew).',
+    where: 'Prima destinație când un serviciu „nu se comportă cum vreau”. Recomandare: copie de rezervă înainte de editare.',
+    topics: ['M0.4'], aliases: ['/etc'],
+  },
+  {
+    id: 'var-dir', abbr: '/var', ro: 'date variabile: log-uri, cozi, cache, baze de date ale serviciilor',
+    what: 'Tot ce crește sau se schimbă în timpul funcționării: /var/log (log-uri), /var/lib (stare persistentă: baza RPM, DNF), /var/spool (cozi: cron, mail), /var/cache, /var/tmp.',
+    how: 'Se golește rar și crește în timp; adesea merită un volum separat (C5), ca un log scăpat de sub control să nu umple /.',
+    where: 'df -h /var; du -sh /var/log; journalctl --disk-usage (L4.8).',
+    topics: ['M0.4'], aliases: ['/var'],
+  },
+  {
+    id: 'usr-dir', abbr: '/usr', ro: 'programele, bibliotecile și documentația instalate de distribuție',
+    what: 'Conține aproape tot software-ul sistemului: /usr/bin (comenzi), /usr/sbin (comenzi de administrare), /usr/lib și /usr/lib64 (biblioteci), /usr/share (date independente de arhitectură, documentație), /usr/local (software instalat de administrator, în afara pachetelor).',
+    how: 'Se modifică de pachete (dnf, rpm), nu manual. Pe RHEL, /bin, /sbin, /lib și /lib64 sunt legături simbolice către /usr/bin, /usr/sbin, /usr/lib, /usr/lib64 (vezi usr-merge).',
+    where: 'which ls → /usr/bin/ls; rpm -ql PACHET listează fișierele din /usr.',
+    topics: ['M0.4'], aliases: ['/usr', '/usr/local', '/usr/bin'],
+  },
+  {
+    id: 'usr-merge', abbr: 'usr merge', ro: '/bin, /sbin, /lib, /lib64 sunt legături către directoarele din /usr',
+    what: 'Directoarele istorice din rădăcină au fost unite cu cele din /usr. Programele care folosesc /bin/bash sau /lib64/ld-linux… continuă să funcționeze.',
+    how: 'ls -ld /bin arată o legătură: /bin -> usr/bin. Motive: /usr se poate monta read-only sau partaja, iar actualizările atomice sunt mai simple.',
+    where: 'Pe RHEL 10, verifică cu ls -ld /bin /sbin /lib /lib64. Dacă /usr/sbin mai este un director separat sau tot o legătură se confirmă pe sistemul tău.',
+    std: 'systemd: The Case for the /usr Merge', topics: ['M0.4'], aliases: ['/bin', '/sbin', '/lib64'],
+  },
+  {
+    id: 'boot-dir', abbr: '/boot', ro: 'nucleul, initramfs și fișierele bootloader-ului',
+    what: 'Conține vmlinuz-*, initramfs-*.img, directorul grub2/ și loader/entries/ (intrări BLS). Pe sistemele UEFI, /boot/efi este partiția ESP, montată separat (FAT).',
+    how: 'De obicei o partiție proprie (1 GiB tipic la instalare), ca bootloader-ul să o citească fără LVM complicat. Actualizarea nucleului adaugă aici fișiere noi.',
+    where: 'ls /boot; df -h /boot; L4.3, L7.4.',
+    topics: ['M0.4'], aliases: ['/boot', 'ESP', '/boot/efi'],
+  },
+  {
+    id: 'pseudo-filesystem', abbr: 'sistem de fișiere virtual', full: 'pseudo-filesystem', ro: 'directoare care nu sunt pe disc: nucleul își expune starea ca fișiere',
+    what: '/proc, /sys, /dev, /run (și /sys/fs/cgroup) sunt generate de nucleu în memorie. Citești un „fișier” și primești informații live; scrii într-unul și schimbi un parametru al nucleului.',
+    how: 'Sunt montate la pornire cu tipuri speciale: proc, sysfs, devtmpfs, tmpfs. df le arată cu 0 octeți ocupați pe disc.',
+    where: 'cat /proc/cpuinfo; cat /proc/meminfo; ls /sys/class/net; findmnt -t proc,sysfs.',
+    std: 'proc(5), sysfs(5)', topics: ['M0.4', 'M0.5'], aliases: ['/proc', '/sys', 'procfs', 'sysfs', 'devtmpfs'],
+  },
+  {
+    id: 'device-file', abbr: 'fișier de dispozitiv', ro: 'intrare din /dev prin care accesezi un dispozitiv ca pe un fișier',
+    what: 'Exemple: /dev/sda (disc), /dev/nvme0n1, /dev/null (aruncă tot), /dev/zero, /dev/tty. Două tipuri: bloc (b, discuri) și caracter (c, terminale).',
+    how: 'ls -l /dev/sda începe cu b; „major, minor” identifică driverul și instanța. devtmpfs le creează automat.',
+    where: 'lsblk, ls -l /dev/null; C5 (discuri), L1.5 (/dev/null).',
+    std: 'mknod(1)', topics: ['M0.4'], aliases: ['/dev', 'special file'],
+  },
+  {
+    id: 'tmpfs', abbr: 'tmpfs', ro: 'sistem de fișiere în memoria RAM, pierdut la reboot',
+    what: 'Folosit pentru /run, /dev/shm și, pe unele distribuții, pentru /tmp. Pe RHEL, /tmp este în mod implicit un director pe disc (de confirmat pe RHEL 10 cu findmnt /tmp).',
+    how: 'Ocupă RAM (și swap) doar cât conține. Se golește la oprire.',
+    where: 'findmnt /run; df -h /run /dev/shm.',
+    topics: ['M0.4'], aliases: ['/run', '/dev/shm'],
+  },
+  {
+    id: 'tmpfiles', abbr: 'systemd-tmpfiles', ro: 'serviciul care creează și curăță fișiere temporare după reguli',
+    what: 'Regulile din /usr/lib/tmpfiles.d/ și /etc/tmpfiles.d/ spun, de exemplu, că /tmp se curăță de fișierele mai vechi de o anumită vârstă. Din acest motiv nu păstrezi nimic important în /tmp.',
+    how: 'Un timer systemd (systemd-tmpfiles-clean.timer) rulează periodic; fișierele cu vârsta peste prag sunt șterse.',
+    where: 'cat /usr/lib/tmpfiles.d/tmp.conf; man tmpfiles.d.',
+    std: 'tmpfiles.d(5)', topics: ['M0.4'], aliases: ['tmpfiles.d', '/tmp', '/var/tmp'],
+  },
+  {
+    id: 'dot-dotdot', abbr: '. și ..', ro: '„.” = directorul curent; „..” = părintele',
+    what: 'Fiecare director conține două intrări speciale. cd .. urcă un nivel; ./script rulează un script din directorul curent. Peste /, .. rămâne /.',
+    how: 'Nucleul le rezolvă la parcurgerea căii (path_resolution(7)). „.” nu este în PATH din motive de securitate, de aceea ./ este necesar.',
+    where: 'cp /etc/hosts .; ls ..; cd ../..',
+    std: 'path_resolution(7)', topics: ['M0.4'], aliases: ['dot', 'parent directory'],
+  },
+];
